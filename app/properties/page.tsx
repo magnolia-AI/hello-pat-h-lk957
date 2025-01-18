@@ -9,8 +9,9 @@ import { useState, useEffect } from 'react'
 export default function PropertiesPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const location = searchParams.get('location') || ''
-  const priceRange = searchParams.get('priceRange') || ''
+    // Get search parameters from URL
+  const locationParam = searchParams.get('location') || ''
+  const priceRangeParam = searchParams.get('priceRange') || ''
   const allProperties = [
     {
       title: "Elegant Estate",
@@ -93,27 +94,30 @@ export default function PropertiesPage() {
       image: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?q=80&w=1475&auto=format&fit=crop"
     }
   ]
-  const [searchLocation, setSearchLocation] = useState(location)
-  const [selectedPriceRange, setSelectedPriceRange] = useState(priceRange)
+  const [searchLocation, setSearchLocation] = useState(locationParam)
+  const [selectedPriceRange, setSelectedPriceRange] = useState(priceRangeParam)
   const [filteredProperties, setFilteredProperties] = useState(allProperties)
+  // Filter properties based on search parameters
   useEffect(() => {
     let filtered = allProperties
-    // Filter by location
-    if (location) {
+    // Filter by location if provided
+    if (locationParam) {
       filtered = filtered.filter(property =>
-        property.location.toLowerCase().includes(location.toLowerCase())
+        property.location.toLowerCase().includes(locationParam.toLowerCase())
       )
     }
-    // Filter by price range
-    if (priceRange) {
-      const [min, max] = priceRange.split('-').map(Number)
+    // Filter by price range if provided
+    if (priceRangeParam) {
+      const [min, max] = priceRangeParam.split('-').map(Number)
       filtered = filtered.filter(property =>
         property.price >= min && property.price <= max
       )
     }
     setFilteredProperties(filtered)
-  }, [location, priceRange])
-  const handleSearch = () => {
+  }, [locationParam, priceRangeParam])
+  // Handle new search
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
     const params = new URLSearchParams()
     if (searchLocation) params.set('location', searchLocation)
     if (selectedPriceRange) params.set('priceRange', selectedPriceRange)
@@ -125,7 +129,7 @@ export default function PropertiesPage() {
       <div className="bg-[#1a365d] text-white py-8">
         <div className="max-w-7xl mx-auto px-4">
           <h1 className="text-3xl font-bold mb-6">Property Search</h1>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl">
+          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl">
             <Input 
               placeholder="Location" 
               className="bg-white text-black"
@@ -147,12 +151,12 @@ export default function PropertiesPage() {
               </SelectContent>
             </Select>
             <Button 
-              onClick={handleSearch}
+              type="submit"
               className="bg-blue-600 hover:bg-blue-700"
             >
               Search Properties
             </Button>
-          </div>
+          </form>
         </div>
       </div>
       {/* Results Section */}
@@ -161,10 +165,10 @@ export default function PropertiesPage() {
           <h2 className="text-2xl font-bold mb-2">
             {filteredProperties.length} Properties Found
           </h2>
-          {location && (
+          {locationParam && (
             <p className="text-gray-600">
-              Showing results for: {location}
-              {priceRange && ` in selected price range`}
+              Showing results for: {locationParam}
+              {priceRangeParam && ` in selected price range`}
             </p>
           )}
         </div>
