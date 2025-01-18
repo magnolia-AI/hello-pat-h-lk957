@@ -4,12 +4,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { useState } from 'react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 export default function Home() {
-  const featuredListings = [
+  const allListings = [
     {
       title: "Elegant Estate",
-      location: "Beverly Hills, CA",
-      price: "$4,250,000",
+      location: "Beverly Hills",
+      price: 4250000,
+      priceFormatted: "$4,250,000",
       beds: 5,
       baths: 4.5,
       sqft: "6,500",
@@ -17,8 +20,9 @@ export default function Home() {
     },
     {
       title: "Oceanfront Villa",
-      location: "Malibu, CA",
-      price: "$7,850,000",
+      location: "Malibu",
+      price: 7850000,
+      priceFormatted: "$7,850,000",
       beds: 6,
       baths: 5,
       sqft: "7,200",
@@ -26,14 +30,55 @@ export default function Home() {
     },
     {
       title: "Modern Masterpiece",
-      location: "Hollywood Hills, CA",
-      price: "$5,750,000",
+      location: "Hollywood Hills",
+      price: 5750000,
+      priceFormatted: "$5,750,000",
       beds: 4,
       baths: 4.5,
       sqft: "5,800",
       image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1475&auto=format&fit=crop"
+    },
+    {
+      title: "Downtown Penthouse",
+      location: "Los Angeles",
+      price: 3500000,
+      priceFormatted: "$3,500,000",
+      beds: 3,
+      baths: 3,
+      sqft: "3,200",
+      image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=1475&auto=format&fit=crop"
+    },
+    {
+      title: "Coastal Dream Home",
+      location: "Santa Monica",
+      price: 6250000,
+      priceFormatted: "$6,250,000",
+      beds: 5,
+      baths: 4,
+      sqft: "5,500",
+      image: "https://images.unsplash.com/photo-1600607687644-c7171b42498b?q=80&w=1475&auto=format&fit=crop"
     }
   ]
+  const [searchLocation, setSearchLocation] = useState("")
+  const [priceRange, setPriceRange] = useState("")
+  const [filteredListings, setFilteredListings] = useState(allListings)
+  const handleSearch = () => {
+    let filtered = allListings
+    // Filter by location
+    if (searchLocation) {
+      filtered = filtered.filter(listing =>
+        listing.location.toLowerCase().includes(searchLocation.toLowerCase())
+      )
+    }
+    // Filter by price range
+    if (priceRange) {
+      const [min, max] = priceRange.split('-').map(Number)
+      filtered = filtered.filter(listing =>
+        listing.price >= min && listing.price <= max
+      )
+    }
+    setFilteredListings(filtered)
+  }
   const stats = [
     { value: "500+", label: "Properties Sold" },
     { value: "$1B+", label: "Total Sales" },
@@ -56,9 +101,27 @@ export default function Home() {
           <p className="text-2xl mb-12 font-light">Curating Exceptional Properties for Discerning Clients</p>
           <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg max-w-2xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input placeholder="Location" className="bg-white/90 text-black" />
-              <Input placeholder="Price Range" className="bg-white/90 text-black" />
-              <Button className="bg-[#1a365d] hover:bg-[#2d4a7c] text-white h-12">
+              <Input 
+                placeholder="Location" 
+                className="bg-white/90 text-black" 
+                value={searchLocation}
+                onChange={(e) => setSearchLocation(e.target.value)}
+              />
+              <Select onValueChange={setPriceRange}>
+                <SelectTrigger className="bg-white/90 text-black">
+                  <SelectValue placeholder="Price Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0-3000000">Under $3M</SelectItem>
+                  <SelectItem value="3000000-5000000">$3M - $5M</SelectItem>
+                  <SelectItem value="5000000-7000000">$5M - $7M</SelectItem>
+                  <SelectItem value="7000000-100000000">$7M+</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                className="bg-[#1a365d] hover:bg-[#2d4a7c] text-white h-12"
+                onClick={handleSearch}
+              >
                 Search Properties
               </Button>
             </div>
@@ -81,13 +144,15 @@ export default function Home() {
       {/* Featured Listings */}
       <section className="py-20 px-4 max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Featured Properties</h2>
+          <h2 className="text-4xl font-bold mb-4">Available Properties</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Discover our handpicked selection of prestigious properties, each offering unique luxury and sophistication
+            {filteredListings.length === 0 
+              ? "No properties found matching your criteria" 
+              : "Discover our handpicked selection of prestigious properties"}
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {featuredListings.map((listing, index) => (
+          {filteredListings.map((listing, index) => (
             <Card key={index} className="overflow-hidden border-0 shadow-lg">
               <div className="relative">
                 <img 
@@ -105,7 +170,7 @@ export default function Home() {
                   {listing.location}
                 </CardDescription>
                 <div className="text-2xl font-bold text-[#1a365d]">
-                  {listing.price}
+                  {listing.priceFormatted}
                 </div>
               </CardHeader>
               <CardContent>
