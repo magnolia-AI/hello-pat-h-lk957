@@ -9,8 +9,7 @@ import { useState, useEffect } from 'react'
 export default function PropertiesPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-    // Get search parameters from URL
-  const locationParam = searchParams.get('location') || ''
+    const locationParam = searchParams.get('location') || ''
   const priceRangeParam = searchParams.get('priceRange') || ''
   const allProperties = [
     {
@@ -97,13 +96,22 @@ export default function PropertiesPage() {
   const [searchLocation, setSearchLocation] = useState(locationParam)
   const [selectedPriceRange, setSelectedPriceRange] = useState(priceRangeParam)
   const [filteredProperties, setFilteredProperties] = useState(allProperties)
-  // Filter properties based on search parameters
+  // Improved search function that's more forgiving
+  const matchLocation = (propertyLocation: string, searchTerm: string) => {
+    if (!searchTerm) return true
+        const searchTerms = searchTerm.toLowerCase().split(' ')
+    const locationWords = propertyLocation.toLowerCase().split(' ')
+        // Check if any of the search terms match the beginning of any location word
+    return searchTerms.every(term =>
+      locationWords.some(word => word.includes(term))
+    )
+  }
   useEffect(() => {
     let filtered = allProperties
     // Filter by location if provided
     if (locationParam) {
       filtered = filtered.filter(property =>
-        property.location.toLowerCase().includes(locationParam.toLowerCase())
+        matchLocation(property.location, locationParam)
       )
     }
     // Filter by price range if provided
@@ -115,11 +123,10 @@ export default function PropertiesPage() {
     }
     setFilteredProperties(filtered)
   }, [locationParam, priceRangeParam])
-  // Handle new search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     const params = new URLSearchParams()
-    if (searchLocation) params.set('location', searchLocation)
+    if (searchLocation?.trim()) params.set('location', searchLocation.trim())
     if (selectedPriceRange) params.set('priceRange', selectedPriceRange)
     router.push(`/properties?${params.toString()}`)
   }
@@ -131,7 +138,7 @@ export default function PropertiesPage() {
           <h1 className="text-3xl font-bold mb-6">Property Search</h1>
           <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl">
             <Input 
-              placeholder="Location" 
+              placeholder="Enter city or area (e.g., Beverly Hills, Santa Monica)" 
               className="bg-white text-black"
               value={searchLocation}
               onChange={(e) => setSearchLocation(e.target.value)}
